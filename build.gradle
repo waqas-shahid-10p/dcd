@@ -1,0 +1,57 @@
+buildscript {
+    ext {
+        springBootVersion = '1.5.3.RELEASE'
+        swaggerVersion = '1.5.13'
+        understandLib = "${System.env.SCITOOLS_BIN}/Java/Understand.jar"
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath('se.transmode.gradle:gradle-docker:1.2')
+    }
+}
+group = 'springio'
+
+apply plugin: 'docker'
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+
+task buildDocker(type: Docker, dependsOn: build) {
+    push = false
+    applicationName = jar.baseName
+    dockerfile = file('src/main/docker/Dockerfile')
+    doFirst {
+        copy {
+            from jar
+            into stageDir
+        }
+    }
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+jar {
+    baseName = 'deadcode-detection'
+    version = '0.1.0'
+}
+
+dependencies {
+    compile('org.springframework.boot:spring-boot-starter-data-jpa')
+    compile('org.springframework.boot:spring-boot-starter-jersey')
+    compile('org.springframework.boot:spring-boot-starter-web')
+    compile("io.swagger:swagger-jersey2-jaxrs:${swaggerVersion}")
+    compile('org.eclipse.jgit:org.eclipse.jgit:4.7.0.201704051617-r')
+    compile('commons-io:commons-io:2.5')
+    runtime('com.h2database:h2')
+    compileOnly('org.projectlombok:lombok')
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile('pl.pragmatists:JUnitParams:1.1.0')
+    compile files("${understandLib}")
+}
